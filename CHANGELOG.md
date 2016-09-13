@@ -1,3 +1,23 @@
+# master
+
+* Your contribution here!
+
+# 1.1.8 (Sep 13 2016)
+
+* Handle arrays passed into `normalize_asset_timestamps` correctly (#184)
+
+# 1.1.7 (Jun 10 2016)
+
+* call `Array#uniq` in `deploy:set_linked_dirs` task to remove duplicated :linked_dirs
+* Add `migration_servers` configuration (#168)
+
+# 1.1.6 (Jan 19 2016)
+
+* Add `rake assets:clobber` task from Rails (#149)
+* Make `assets:clean` capable with zsh (#150)
+* Split `deploy:migrate` to allow for finer hook-control (#148)
+* Fix for parsing ls output in detect_manifest_path (#133)
+
 # 1.1.5 (Oct 15 2015)
 
 * Disable `deploy:cleanup_assets` by default due to undesirable behavior in Rails 3. Use `set :keep_assets, 2` to explicitly enable this feature for Rails 4.

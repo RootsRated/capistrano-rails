@@ -7,11 +7,25 @@ Rails specific tasks for Capistrano v3:
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add these lines to your application's Gemfile:
 
 ```ruby
-gem 'capistrano', '~> 3.1'
-gem 'capistrano-rails', '~> 1.1'
+group :development do
+  gem 'capistrano', '~> 3.6'
+  gem 'capistrano-rails', '~> 1.1'
+end
+```
+
+Run the following command to install the gems:
+
+```
+bundle install
+```
+
+Then run the generator to create a basic set of configuration files:
+
+```
+bundle exec cap install
 ```
 
 ## Usage
@@ -44,8 +58,11 @@ set :rails_env, 'staging'
 # If the rake executable differs from 'rake'
 set :rake_bin, 'pitch_fork'
 
-# Defaults to 'db'
-set :migration_role, 'migrator'
+# Defaults to :db role
+set :migration_role, :db
+
+# Defaults to the primary :db server
+set :migration_servers, -> { primary(fetch(:migration_role)) }
 
 # Defaults to false
 # Skip migration if files in db/migrate were not modified
@@ -59,7 +76,7 @@ set :assets_roles, [:web, :app]
 set :assets_prefix, 'prepackaged-assets'
 
 # If you need to touch public/images, public/javascripts, and public/stylesheets on each deploy
-set :normalize_asset_timestamps, %{public/images public/javascripts public/stylesheets}
+set :normalize_asset_timestamps, %w{public/images public/javascripts public/stylesheets}
 
 # Defaults to nil (no asset cleanup is performed)
 # If you use Rails 4+ and you'd like to clean up old assets after each deploy,
@@ -77,6 +94,19 @@ Make sure you enable it by setting `linked_dirs` and `linked_files` options:
 set :linked_dirs, fetch(:linked_dirs, []).push('log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'vendor/bundle', 'public/system', 'public/uploads')
 set :linked_files, fetch(:linked_files, []).push('config/database.yml', 'config/secrets.yml')
 ```
+
+### Recommendations
+
+While migrations looks like a concern of the database layer, Rails migrations
+are strictly related to the framework. Therefore, it's recommended to set the
+role to `:app` instead of `:db` like:
+
+```ruby
+set :migration_role, :app
+```
+
+The advantage is you won't need to deploy your application to your database
+server, and overall a better separation of concerns.
 
 ## Contributing
 

@@ -9,10 +9,10 @@ namespace :deploy do
   desc 'Normalize asset timestamps'
   task :normalize_assets => [:set_rails_env] do
     on release_roles(fetch(:assets_roles)) do
-      assets = fetch(:normalize_asset_timestamps)
-      if assets
+      assets = Array(fetch(:normalize_asset_timestamps, []))
+      if assets.any?
         within release_path do
-          execute :find, "#{assets} -exec touch -t #{asset_timestamp} {} ';'; true"
+          execute :find, "#{assets.join(' ')} -exec touch -t #{asset_timestamp} {} ';'; true"
         end
       end
     end
@@ -31,6 +31,17 @@ namespace :deploy do
       within release_path do
         with rails_env: fetch(:rails_env) do
           execute fetch(:rake_bin), "assets:clean[#{fetch(:keep_assets)}]"
+        end
+      end
+    end
+  end
+
+  desc 'Clobber assets'
+  task :clobber_assets => [:set_rails_env] do
+    on release_roles(fetch(:assets_roles)) do
+      within release_path do
+        with rails_env: fetch(:rails_env) do
+          execute fetch(:rake_bin), "assets:clobber"
         end
       end
     end
@@ -96,7 +107,7 @@ namespace :deploy do
         manifest*.*
       ).each do |pattern|
         candidate = release_path.join('public', fetch(:assets_prefix), pattern)
-        return capture(:ls, candidate).strip if test(:ls, candidate)
+        return capture(:ls, candidate).strip.gsub(/(\r|\n)/,' ') if test(:ls, candidate)
       end
       msg = 'Rails assets manifest file not found.'
       warn msg
@@ -109,7 +120,7 @@ end
 # as assets_prefix will always have a default value
 namespace :deploy do
   task :set_linked_dirs do
-    set :linked_dirs, fetch(:linked_dirs, []).push("public/#{fetch(:assets_prefix)}")
+    set :linked_dirs, fetch(:linked_dirs, []).push("public/#{fetch(:assets_prefix)}").uniq
   end
 end
 
